@@ -7,7 +7,7 @@ if rank == 0:
     data = {'a': 7, 'b': 3.14}
     req = comm.isend(data, dest=1, tag=11)
     req.wait()
-    print(f"Data sent from pid {rank}: {data}")
+
 elif rank == 1:
     req = comm.irecv(source=0, tag=11)
     data = req.wait()
