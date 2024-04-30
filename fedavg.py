@@ -30,7 +30,7 @@ y = y[indices]
 x_tensor = torch.tensor(x, dtype=torch.float32).unsqueeze(1)
 y_tensor = torch.tensor(y, dtype=torch.float32).unsqueeze(1)
 
-# Load your data
+# Load entire data as test data
 test_data = np.loadtxt("training_data.csv", delimiter=",", skiprows=1)
 x_test = data[:, 0]
 y_test = data[:, 1]
