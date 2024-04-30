@@ -1,4 +1,26 @@
-# mpi4py-federated-learning
+# Guide to run the components of this project:
+
+1. To generate the dataset
+```bash
+$ python data_generator.py
+```
+
+2. To run the baseline model
+```bash
+$ python baseline.py
+```
+
+3. To run the Distributed FedAvg Model:
+```bash
+$ mpiexec -n 3 python -m mpi4py fedavg.py
+```
+
+3. To run the Distributed FedSGD Model:
+```bash
+$ mpiexec -n 3 python -m mpi4py fedsgd.py
+```
+
+# Guide to set-up the system:
 
 1. Create and activate a conda environment with python=3.10
 ```

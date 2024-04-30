@@ -64,7 +64,7 @@ dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
 # Train your model
 losses = []
-for epoch in range(500):
+for epoch in range(1000):
     for inputs, targets in dataloader:
         optimizer.zero_grad()
         outputs = model(inputs)
@@ -73,7 +73,8 @@ for epoch in range(500):
         optimizer.step()
     losses.append(loss.item())
 
-    # Every 100 epochs, we average the models using FedAvg
+    # Every epochs, we average the models using FedAvg
+
     if epoch % 100 == 99:
         print(f'Rank {rank}, Epoch {epoch+1}, Loss: {loss.item():.4f}')
 
@@ -97,20 +98,21 @@ for epoch in range(500):
         plt.title('Original Data vs Fitted Line')
         plt.savefig(f'plot_rank_{rank}_epoch_{epoch+1}_before_reducing.png')
 
-        # Average the models using FedAvg
-        avg_params = []
-        for param in model.parameters():
-            data = param.data.numpy()
-            avg_data = np.empty_like(data)
-            comm.Allreduce(data, avg_data, op=MPI.SUM)
-            avg_data /= size
-            avg_params.append(avg_data)
+    # Average the models using FedAvg
+    avg_params = []
+    for param in model.parameters():
+        data = param.data.numpy()
+        avg_data = np.empty_like(data)
+        comm.Allreduce(data, avg_data, op=MPI.SUM)
+        avg_data /= size
+        avg_params.append(avg_data)
 
-        # Create a new model with the averaged parameters
-        model = SimpleLinearRegression()
-        for param, avg_param in zip(model.parameters(), avg_params):
-            param.data = torch.tensor(avg_param)
+    # Create a new model with the averaged parameters
+    model = SimpleLinearRegression()
+    for param, avg_param in zip(model.parameters(), avg_params):
+        param.data = torch.tensor(avg_param)
 
+    if epoch % 100 == 99:
         # Evaluate the model after reducing
         y_test_pred = model(x_test_tensor)
         final_loss = loss_fn(y_test_pred, y_test_tensor)

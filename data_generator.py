@@ -6,7 +6,13 @@ the properties that we want to study in federated learning.
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
+import datetime
 
+# Get the current date and time
+now = datetime.datetime.now()
+
+# Create a timestamp string
+timestamp = now.strftime("%Y%m%d_%H%M%S")
 
 def generate_data_points():
     np.random.seed(42)  # Set seed for reproducibility
@@ -41,7 +47,7 @@ def f(x):
 data = generate_data_points()
 
 # Save data to CSV file
-with open('training_data.csv', 'w', newline='') as csvfile:
+with open(f'dataset/training_data_v{timestamp}.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(['x', 'y'])
     for point in data:
@@ -86,4 +92,4 @@ plt.ylabel('Y')
 plt.title('Linear and Polynomial Data Points')
 plt.legend()
 plt.grid(True)
-plt.show()
+plt.savefig("images/data_distribution_plot.png")

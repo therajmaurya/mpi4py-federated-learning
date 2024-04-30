@@ -93,7 +93,7 @@ plt.legend()
 plt.xlabel('X')
 plt.ylabel('Y')
 plt.title('Original Data vs Fitted Line')
-plt.savefig(f'plot_rank_{rank}_local.png')
+plt.savefig(f'images/fedavg/plot_rank_{rank}_local.png')
 
 # After training, we average the models using FedAvg
 avg_params = []
@@ -116,9 +116,9 @@ final_loss = loss_fn(y_test_pred, y_test_tensor)
 r2 = r2_score(y_test, y_test_pred.detach().numpy())
 mae = mean_absolute_error(y_test, y_test_pred.detach().numpy())
 
-print(f'Rank {rank}, Final loss: {final_loss.item()}')
-print(f'Rank {rank}, R-squared: {r2}')
-print(f'Rank {rank}, Mean Absolute Error: {mae}')
+print(f'After Reducing at Rank {rank}, Final loss: {final_loss.item()}')
+print(f'After Reducing at Rank {rank}, R-squared: {r2}')
+print(f'After Reducing at Rank {rank}, Mean Absolute Error: {mae}')
 
 # Save the plot of original data and prediction on the local model
 plt.figure(figsize=(10, 6))
@@ -128,4 +128,4 @@ plt.legend()
 plt.xlabel('X')
 plt.ylabel('Y')
 plt.title('Original Data vs Fitted Line')
-plt.savefig(f'plot_rank_{rank}_after_reducing.png')
+plt.savefig(f'images/fedavg/plot_rank_{rank}_after_reducing.png')
