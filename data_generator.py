@@ -8,30 +8,27 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 
-# Get the current date and time
 now = datetime.datetime.now()
-
-# Create a timestamp string
 timestamp = now.strftime("%Y%m%d_%H%M%S")
 
 def generate_data_points():
-    np.random.seed(42)  # Set seed for reproducibility
-    # Generate 500 linear data points
+    np.random.seed(42)  # seed for reproducibility
+    # Generating 500 linear data points (meaning in the region where the graph looks linear in nature)
     linear_xs = np.linspace(-5, -3, 500)
     linear_ys = f(linear_xs) + np.random.normal(0, 20, 500)
     linear_points = list(zip(linear_xs, linear_ys))
 
-    # Generate 500 polynomial data points
+    # Generating 500 polynomial data points with gaussin white noise with different variance and mean
     polynomial_xs = np.linspace(-5, 5, 500)
     polynomial_ys = f(polynomial_xs) + np.random.normal(20, 15, 500)
     polynomial_points = list(zip(polynomial_xs, polynomial_ys))
 
-    # Generate 500 polynomial data points
+    # Generating 500 polynomial data points with gaussin white noise with different variance and mean
     polynomial_xs = np.linspace(-5, 5, 500)
     polynomial_ys = f(polynomial_xs) + np.random.normal(-20, 15, 500)
     polynomial_points2 = list(zip(polynomial_xs, polynomial_ys))
 
-    # Combine the data points
+    # Combining the data points
     data_points = []
     for i in range(500):
         data_points.append(linear_points[i])
@@ -46,7 +43,7 @@ def f(x):
 
 data = generate_data_points()
 
-# Save data to CSV file
+# Saving data to CSV file
 with open(f'dataset/training_data_v{timestamp}.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(['x', 'y'])

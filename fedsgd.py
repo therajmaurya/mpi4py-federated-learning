@@ -8,39 +8,37 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score, mean_absolute_error
 from torch.utils.data import DataLoader, TensorDataset
 
-# Set the seed for reproducibility
+# seeding for reproducability
 np.random.seed(0)
 torch.manual_seed(0)
 
-# Initialize MPI
+# MPI init
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
-# Load your data
+# data loading
 data = np.loadtxt("training_data.csv", delimiter=",", skiprows=1)
 x = data[:, 0]
 y = data[:, 1]
 
-# Each core reads all the rows where row%size = rank
+# each core reads all the rows where row%size = rank
 indices = np.where(np.arange(len(x)) % size == rank)[0]
 x = x[indices]
 y = y[indices]
 
-# Convert your data to PyTorch tensors and to float32
+# Converting data to PyTorch tensors and to float32
 x_tensor = torch.tensor(x, dtype=torch.float32).unsqueeze(1)
 y_tensor = torch.tensor(y, dtype=torch.float32).unsqueeze(1)
 
-# Load entire data as test data
+# Loading entire data as test data
 test_data = np.loadtxt("training_data.csv", delimiter=",", skiprows=1)
 x_test = data[:, 0]
 y_test = data[:, 1]
 
-# Convert your data to PyTorch tensors and to float32
 x_test_tensor = torch.tensor(x_test, dtype=torch.float32).unsqueeze(1)
 y_test_tensor = torch.tensor(y_test, dtype=torch.float32).unsqueeze(1)
 
-# Define your model
 class SimpleLinearRegression(nn.Module):
     def __init__(self):
         super(SimpleLinearRegression, self).__init__()
@@ -55,15 +53,15 @@ class SimpleLinearRegression(nn.Module):
 
 model = SimpleLinearRegression()
 
-# Define your loss function and optimizer
+# loss function and optimizer
 loss_fn = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=1e-6)
 
-# Create DataLoader for efficient batch processing
+# DataLoader for efficient batch processing
 dataset = TensorDataset(x_tensor, y_tensor)
 dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
-# Train your model
+# model training
 losses = []
 for epoch in range(1000):
     for inputs, targets in dataloader:
@@ -72,7 +70,7 @@ for epoch in range(1000):
         loss = loss_fn(outputs, targets)
         loss.backward()
 
-        # FedSGD: average the gradients
+        # FedSGD: averaging the gradients
         for param in model.parameters():
             grad_data = param.grad.data.numpy()
             avg_grad = np.empty_like(grad_data)
@@ -85,7 +83,7 @@ for epoch in range(1000):
     if epoch % 100 == 99:
         print(f'Rank {rank}, Epoch {epoch+1}, Loss: {loss.item():.4f}')
 
-# Evaluate the model
+# model eval
 y_test_pred = model(x_test_tensor)
 final_loss = loss_fn(y_test_pred, y_test_tensor)
 r2 = r2_score(y_test, y_test_pred.detach().numpy())
@@ -95,7 +93,7 @@ print(f'Rank {rank}, Final loss: {final_loss.item()}')
 print(f'Rank {rank}, R-squared: {r2}')
 print(f'Rank {rank}, Mean Absolute Error: {mae}')
 
-# Save the plot of original data and prediction on the local model
+# plotting
 plt.figure(figsize=(10, 6))
 plt.scatter(x_test, y_test, label='Original data')
 plt.scatter(x_test, y_test_pred.detach().numpy(), label='Fitted line')

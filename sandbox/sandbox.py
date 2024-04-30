@@ -6,20 +6,19 @@ from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
-# Initialize MPI
+# MPI init
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
-# Generate synthetic dataset
+# synthetic dataset
 X, y = make_regression(n_samples=1000, n_features=20, noise=0.1, random_state=42)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Convert to PyTorch tensors
 X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
 y_train_tensor = torch.tensor(y_train, dtype=torch.float32)
 
-# Define a simple linear regression model
+# model
 class SimpleLinearRegression(nn.Module):
     def __init__(self, input_dim):
         super(SimpleLinearRegression, self).__init__()
@@ -28,22 +27,22 @@ class SimpleLinearRegression(nn.Module):
     def forward(self, x):
         return self.linear(x)
 
-# Initialize local model
+# model init
 input_dim = X_train.shape[1]
 local_model = SimpleLinearRegression(input_dim)
 
-# Initialize optimizer and loss
+# optimizer and loss init
 criterion = nn.MSELoss()
 optimizer = optim.SGD(local_model.parameters(), lr=0.01)
 
-# Initialize global model
+# global model init
 global_model = SimpleLinearRegression(input_dim)
 
-# Communication metrics
+# comm metrics
 send_bytes = []
 recv_bytes = []
 
-# Synchronize initial global model
+# synchronize initial global model
 for param, global_param in zip(local_model.parameters(), global_model.parameters()):
     data = param.data.numpy()
     comm.Bcast(data, root=0)
@@ -51,15 +50,15 @@ for param, global_param in zip(local_model.parameters(), global_model.parameters
     global_param.data = torch.from_numpy(comm.bcast(param.data.numpy(), root=0))
     recv_bytes.append(len(param.data.numpy()))
 
-# Federated training using FedAvg
+# federated training using FedAvg
 if rank == 0:
     print("Training using FedAvg...")
 for epoch in range(10):
-    # Load global model state
+    # global model state
     for param, global_param in zip(local_model.parameters(), global_model.parameters()):
         param.data = global_param.data.clone()
 
-    # Train local model
+    # local model
     for i in range(len(X_train_tensor)):
         optimizer.zero_grad()
         output = local_model(X_train_tensor[i])
@@ -67,7 +66,7 @@ for epoch in range(10):
         loss.backward()
         optimizer.step()
 
-    # Average local models
+    # average local models
     local_model_state = [param.data.clone() for param in local_model.parameters()]
     averaged_model_state = [torch.zeros_like(param) for param in local_model.parameters()]
 
@@ -79,22 +78,22 @@ for epoch in range(10):
     for param in averaged_model_state:
         param /= size
 
-    # Update global model
+    # update global model
     for global_param, param in zip(global_model.parameters(), averaged_model_state):
         global_param.data = param
 
     if rank == 0:
         print(f"Epoch {epoch + 1}, Global Model: {global_model.state_dict()}")
 
-# Federated training using FedSGD
+# federated training using FedSGD
 if rank == 0:
     print("Training using FedSGD...")
 for epoch in range(10):
-    # Load global model state
+    # load global model state
     for param, global_param in zip(local_model.parameters(), global_model.parameters()):
         param.data = global_param.data.clone()
 
-    # Train local model
+    # train local model
     for i in range(len(X_train_tensor)):
         optimizer.zero_grad()
         output = local_model(X_train_tensor[i])
@@ -102,7 +101,7 @@ for epoch in range(10):
         loss.backward()
         optimizer.step()
 
-    # Aggregate gradients
+    # aggregate gradients
     local_gradients = [param.grad.clone() for param in local_model.parameters()]
     averaged_gradients = [torch.zeros_like(param.grad) for param in local_model.parameters()]
 
@@ -111,18 +110,18 @@ for epoch in range(10):
         send_bytes.append(len(grad.numpy()))
         recv_bytes.append(len(global_grad.numpy()))
 
-    # Update global model
+    # update global model
     for global_param, grad in zip(global_model.parameters(), averaged_gradients):
         global_param.data -= 0.01 * grad / size
 
     if rank == 0:
         print(f"Epoch {epoch + 1}, Global Model: {global_model.state_dict()}")
 
-# Final global model
+# final global model
 if rank == 0:
     print(f"Final global model: {global_model.state_dict()}")
 
-# Plot communication metrics
+# plot communication metrics
 if rank == 0:
     plt.figure(figsize=(10, 5))
     plt.plot(send_bytes, label='Send Bytes', marker='o')

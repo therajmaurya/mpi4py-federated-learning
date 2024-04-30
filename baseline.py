@@ -6,16 +6,15 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score, mean_absolute_error
 from torch.utils.data import DataLoader, TensorDataset
 
-# Load your data
+# Loading the data
 data = np.loadtxt("training_data.csv", delimiter=",", skiprows=1)
 x = data[:, 0]
 y = data[:, 1]
 
-# Convert your data to PyTorch tensors and to float32
 x_tensor = torch.tensor(x, dtype=torch.float32).unsqueeze(1)
 y_tensor = torch.tensor(y, dtype=torch.float32).unsqueeze(1)
 
-# Define your model
+# model
 class SimpleLinearRegression(nn.Module):
     def __init__(self):
         super(SimpleLinearRegression, self).__init__()
@@ -30,15 +29,15 @@ class SimpleLinearRegression(nn.Module):
 
 model = SimpleLinearRegression()
 
-# Define your loss function and optimizer
+# loss function and optimizer
 loss_fn = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=1e-6)
 
-# Create DataLoader for efficient batch processing
+# DataLoader for efficient batch processing
 dataset = TensorDataset(x_tensor, y_tensor)
 dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
-# Train your model
+# model training
 losses = []
 for epoch in range(500):
     for inputs, targets in dataloader:
@@ -51,7 +50,7 @@ for epoch in range(500):
     if epoch % 100 == 99:
         print(f'Epoch {epoch+1}, Loss: {loss.item():.4f}')
 
-# Plot the loss curve
+# plotting the loss curve
 plt.figure(figsize=(10, 5))
 plt.plot(losses, label='Training Loss')
 plt.xlabel('Epochs')
@@ -60,7 +59,7 @@ plt.title('Training Loss Curve')
 plt.legend()
 plt.savefig("images/baseline/Loss Curve.png")
 
-# Evaluate the model
+# Evaluating the model
 y_pred = model(x_tensor)
 final_loss = loss_fn(y_pred, y_tensor)
 r2 = r2_score(y, y_pred.detach().numpy())
@@ -70,7 +69,7 @@ print(f'Final loss: {final_loss.item()}')
 print(f'R-squared: {r2}')
 print(f'Mean Absolute Error: {mae}')
 
-# Save the plot of original data and prediction on the model
+# plotting final datapoints result
 plt.figure(figsize=(10, 6))
 plt.scatter(x, y, label='Original data')
 plt.scatter(x, y_pred.detach().numpy(), label='Fitted line')
