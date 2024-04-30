@@ -41,7 +41,7 @@ def f(x):
 data = generate_data_points()
 
 # Save data to CSV file
-with open('data_points.csv', 'w', newline='') as csvfile:
+with open('training_data.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(['x', 'y'])
     for point in data:
