@@ -5,13 +5,13 @@
 - I have attached all the files in this repo, but please use the README to identify the most relevant files that you need to run.
 
 # Detailed Report
-1. **DatasetPreparations**: 
+1. **DatasetPreparations**:
     - Used dataset from a file on each node based on row number where row % rank_of_the_process == 0
     - Synthetic Data is polynomial in nature with some white guassian noise with a constant mean and standard deviation. Data has been prepared in a way so that it can illustrate the benefits of fedderated learning even on very short samples and tiny model.
     - I have used entire data as test data on each process to maintain consistency in evaluation.
     - I have plotted the data distribution and put it in images folder for your reference.
     - **Privacy Preserving Feature**: Since each node has it's own training data, data is not shared between the systems which preservies privacy. Here I have simulated this using the a file reading based on row ids, but it illustrates the privacy idea.
-2. **Training**: 
+2. **Training**:
 - In order to benchmark the performance, I implemented the same aarchitecture (that I used in federated learning) neural network (NN) with any distributed federated learning to get a baseline.
 - Developed multiple variants of FedAvg method by changing the point of aggregation in various experiments. The global aggregation turned out to be best on this specific data and model architecture, which is might not be true in other cases.
 - Also, implemented the FedSGD technique where we were doing the aggregations at every epoch of the training.
@@ -31,11 +31,11 @@
     - After Reducing at Rank 2, R-squared: 0.7582177084580953
     - After Reducing at Rank 2, Mean Absolute Error: 27.069782214178403
 4. **Distributed System Perspective Analysis**:
-- **Message Size**: 
+- **Message Size**:
     - From total number of messages/parameters perspective per synchronization, the number of messages remain same, but since FedSGD synchronizes more frequently than FedAvg, overall it sends more number of messages in total.
     - Moreover, in practice, since storing gradients require higher floating precision points than parameters, FedSGD has even more requirements in terms of overall message size capacity than FedAvg.
-- **Communication**: 
-    - FedSGD requires more bandwidth than FedAvg as it synchronizes after every gradient computation while FedAvg runs after a few epochs. 
+- **Communication**:
+    - FedSGD requires more bandwidth than FedAvg as it synchronizes after every gradient computation while FedAvg runs after a few epochs.
 - **Deadlock**: I have used Reduceall API of MPI which is a blocking API and since there is no interdependency anywhere else, deadlock will not occur in this scenario.
 
 6. **Raw Outputs**:
