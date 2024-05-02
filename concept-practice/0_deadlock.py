@@ -1,6 +1,6 @@
 """
-Run "mpiexec -n 2 python -m mpi4py examples/0_deadlock.py"
-instead of "mpiexec -n 2 python examples/0_deadlock.py"
+Run "mpiexec -n 2 python -m mpi4py concept-practice/0_deadlock.py"
+instead of "mpiexec -n 2 python concept-practice/0_deadlock.py"
 """
 
 from mpi4py import MPI
