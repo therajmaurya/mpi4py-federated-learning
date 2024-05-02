@@ -70,13 +70,14 @@ for epoch in range(1000):
         loss = loss_fn(outputs, targets)
         loss.backward()
 
-        # FedSGD: averaging the gradients
-        for param in model.parameters():
-            grad_data = param.grad.data.numpy()
-            avg_grad = np.empty_like(grad_data)
-            comm.Allreduce(grad_data, avg_grad, op=MPI.SUM)
-            avg_grad /= size
-            param.grad.data = torch.tensor(avg_grad)
+        # FedSGD: averaging the gradients every 10 epochs
+        if epoch % 10 == 9:
+            for param in model.parameters():
+                grad_data = param.grad.data.numpy()
+                avg_grad = np.empty_like(grad_data)
+                comm.Allreduce(grad_data, avg_grad, op=MPI.SUM)
+                avg_grad /= size
+                param.grad.data = torch.tensor(avg_grad)
 
         optimizer.step()
     losses.append(loss.item())
