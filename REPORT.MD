@@ -1,6 +1,7 @@
 ## Brief Summary
 - I have added README.md that contains steps to setup and run the project.
 - I have implement FedAvg and FedSGD Federated Learning technique on a synthetic data for a regression problem using 2 Layers Vanilla Neural Netowrk (with some default settings) that highlights the properites of these algorithms.
+- I have added various plots related to data and model metrics inside "images" folder.
 - I have ran various experiments and solved multiple practice problems.
 - I have attached all the files in this repo, but please use the README to identify the most relevant files that you need to run.
 
@@ -60,6 +61,9 @@ Mean Absolute Error: 27.496908950417136
 
 ```bash
 (mpi4py) (base) therajmaurya@Rajs-MacBook-Pro mpi4py-federated-learning % mpiexec -n 3 python -m mpi4py fedavg.py
+The model has 31 parameters each having type simulated torch.float16 with logical size 2.0 bytes.
+The model has 31 parameters each having type simulated torch.float16 with logical size 2.0 bytes.
+The model has 31 parameters each having type simulated torch.float16 with logical size 2.0 bytes.
 Rank 1, Epoch 100, Loss: 2110.9556
 Rank 2, Epoch 100, Loss: 3536.0410
 Rank 0, Epoch 100, Loss: 10280.8613
@@ -113,44 +117,47 @@ After Reducing at Rank 2, Mean Absolute Error: 28.933150488261308
 
 ```bash
 (mpi4py) (base) therajmaurya@Rajs-MacBook-Pro mpi4py-federated-learning % mpiexec -n 3 python -m mpi4py fedsgd.py
-Rank 0, Epoch 100, Loss: 12272.5566
-Rank 1, Epoch 100, Loss: 2060.7283
-Rank 2, Epoch 100, Loss: 3466.8164
-Rank 0, Epoch 200, Loss: 13607.0215
-Rank 1, Epoch 200, Loss: 2272.1980
-Rank 2, Epoch 200, Loss: 3691.0137
-Rank 0, Epoch 300, Loss: 6530.2168
-Rank 1, Epoch 300, Loss: 1187.6240
-Rank 2, Epoch 300, Loss: 1649.3684
-Rank 0, Epoch 400, Loss: 1473.7737
-Rank 1, Epoch 400, Loss: 1192.6494
-Rank 2, Epoch 400, Loss: 524.2543
-Rank 0, Epoch 500, Loss: 999.8586
-Rank 1, Epoch 500, Loss: 2025.6960
-Rank 2, Epoch 500, Loss: 673.4999
-Rank 0, Epoch 600, Loss: 1411.2216
-Rank 1, Epoch 600, Loss: 2137.0020
-Rank 2, Epoch 600, Loss: 787.1365
-Rank 0, Epoch 700, Loss: 967.8832
-Rank 1, Epoch 700, Loss: 2164.3813
-Rank 2, Epoch 700, Loss: 450.4697
-Rank 0, Epoch 800, Loss: 1318.3406
-Rank 1, Epoch 800, Loss: 1234.2527
-Rank 2, Epoch 800, Loss: 395.4550
-Rank 0, Epoch 900, Loss: 1081.6978
-Rank 1, Epoch 900, Loss: 2243.7886
-Rank 2, Epoch 900, Loss: 453.3144
-Rank 0, Epoch 1000, Loss: 1168.5691
-Rank 1, Epoch 1000, Loss: 1497.8383
-Rank 2, Epoch 1000, Loss: 802.7423
-Rank 0, Final loss: 1104.7113037109375
-Rank 0, R-squared: 0.7582177084580953
-Rank 0, Mean Absolute Error: 27.069782214178403
-Rank 1, Final loss: 1104.7113037109375
-Rank 1, R-squared: 0.7582177084580953
-Rank 1, Mean Absolute Error: 27.069782214178403
-Rank 2, Final loss: 1104.7113037109375
-Rank 2, R-squared: 0.7582177084580953
-Rank 2, Mean Absolute Error: 27.069782214178403
+The model has 31 parameters each having type torch.float32 with size 4 bytes.
+The model has 31 parameters each having type torch.float32 with size 4 bytes.
+The model has 31 parameters each having type torch.float32 with size 4 bytes.
+Rank 0, Epoch 100, Loss: 12272.5566, Cumulative Messages: 3100
+Rank 1, Epoch 100, Loss: 2060.7283, Cumulative Messages: 3100
+Rank 2, Epoch 100, Loss: 3466.8164, Cumulative Messages: 3100
+Rank 0, Epoch 200, Loss: 13607.0215, Cumulative Messages: 6200
+Rank 1, Epoch 200, Loss: 2272.1980, Cumulative Messages: 6200
+Rank 2, Epoch 200, Loss: 3691.0137, Cumulative Messages: 6200
+Rank 0, Epoch 300, Loss: 6530.2168, Cumulative Messages: 9300
+Rank 1, Epoch 300, Loss: 1187.6240, Cumulative Messages: 9300
+Rank 2, Epoch 300, Loss: 1649.3684, Cumulative Messages: 9300
+Rank 0, Epoch 400, Loss: 1473.7737, Cumulative Messages: 12400
+Rank 1, Epoch 400, Loss: 1192.6494, Cumulative Messages: 12400
+Rank 2, Epoch 400, Loss: 524.2543, Cumulative Messages: 12400
+Rank 0, Epoch 500, Loss: 999.8586, Cumulative Messages: 15500
+Rank 1, Epoch 500, Loss: 2025.6960, Cumulative Messages: 15500
+Rank 2, Epoch 500, Loss: 673.4999, Cumulative Messages: 15500
+Rank 0, Epoch 600, Loss: 1411.2216, Cumulative Messages: 18600
+Rank 1, Epoch 600, Loss: 2137.0020, Cumulative Messages: 18600
+Rank 2, Epoch 600, Loss: 787.1365, Cumulative Messages: 18600
+Rank 0, Epoch 700, Loss: 967.8832, Cumulative Messages: 21700
+Rank 1, Epoch 700, Loss: 2164.3813, Cumulative Messages: 21700
+Rank 2, Epoch 700, Loss: 450.4697, Cumulative Messages: 21700
+Rank 0, Epoch 800, Loss: 1318.3406, Cumulative Messages: 24800
+Rank 1, Epoch 800, Loss: 1234.2527, Cumulative Messages: 24800
+Rank 2, Epoch 800, Loss: 395.4550, Cumulative Messages: 24800
+Rank 0, Epoch 900, Loss: 1081.6978, Cumulative Messages: 27900
+Rank 1, Epoch 900, Loss: 2243.7886, Cumulative Messages: 27900
+Rank 2, Epoch 900, Loss: 453.3144, Cumulative Messages: 27900
+Rank 0, Epoch 1000, Loss: 1168.5691, Cumulative Messages: 31000
+Rank 1, Epoch 1000, Loss: 1497.8383, Cumulative Messages: 31000
+Rank 2, Epoch 1000, Loss: 802.7423, Cumulative Messages: 31000
+After Reducing at Rank 2, Final loss: 1104.7113037109375
+After Reducing at Rank 2, R-squared: 0.7582177084580953
+After Reducing at Rank 2, Mean Absolute Error: 27.069782214178403
+After Reducing at Rank 1, Final loss: 1104.7113037109375
+After Reducing at Rank 1, R-squared: 0.7582177084580953
+After Reducing at Rank 1, Mean Absolute Error: 27.069782214178403
+After Reducing at Rank 0, Final loss: 1104.7113037109375
+After Reducing at Rank 0, R-squared: 0.7582177084580953
+After Reducing at Rank 0, Mean Absolute Error: 27.069782214178403
 (mpi4py) (base) therajmaurya@Rajs-MacBook-Pro mpi4py-federated-learning %
 ```

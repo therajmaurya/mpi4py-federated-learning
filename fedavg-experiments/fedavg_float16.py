@@ -1,3 +1,7 @@
+# This code will work only on the system which supports half precision computation
+# If we run on a CPU, it will give "RuntimeError: "mse_backward_cpu_out" not implemented for 'Half'",
+# as half precision is not supported on normal CPUs
+
 from mpi4py import MPI
 import numpy as np
 import sys
@@ -27,16 +31,16 @@ indices = np.where(np.arange(len(x)) % size == rank)[0]
 x = x[indices]
 y = y[indices]
 
-x_tensor = torch.tensor(x, dtype=torch.float32).unsqueeze(1)
-y_tensor = torch.tensor(y, dtype=torch.float32).unsqueeze(1)
+x_tensor = torch.tensor(x, dtype=torch.float16).unsqueeze(1)
+y_tensor = torch.tensor(y, dtype=torch.float16).unsqueeze(1)
 
 # Load entire data as test data
 test_data = np.loadtxt("training_data.csv", delimiter=",", skiprows=1)
 x_test = data[:, 0]
 y_test = data[:, 1]
 
-x_test_tensor = torch.tensor(x_test, dtype=torch.float32).unsqueeze(1)
-y_test_tensor = torch.tensor(y_test, dtype=torch.float32).unsqueeze(1)
+x_test_tensor = torch.tensor(x_test, dtype=torch.float16).unsqueeze(1)
+y_test_tensor = torch.tensor(y_test, dtype=torch.float16).unsqueeze(1)
 
 # model
 class SimpleLinearRegression(nn.Module):
@@ -68,9 +72,11 @@ def count_parameters_and_type(model):
     return count_params, d_size, d_type
 
 model = SimpleLinearRegression()
+# converting the model to half precision
+model.half()
 
 num_params, d_size, d_type = count_parameters_and_type(model)
-print(f'The model has {num_params} parameters each having type simulated torch.float16 with logical size {0.5*d_size} bytes.')
+print(f'The model has {num_params} parameters each having type {d_type} with size {d_size} bytes.')
 
 # loss function and optimizer
 loss_fn = nn.MSELoss()
@@ -88,6 +94,10 @@ cumulative_message_count = 0
 cumulative_message_size = 0
 for epoch in range(1000):
     for inputs, targets in dataloader:
+        # coonverting inputs and targets to half precision
+        inputs = inputs.half()
+        targets = targets.half()
+
         optimizer.zero_grad()
         outputs = model(inputs)
         loss = loss_fn(outputs, targets)
@@ -97,9 +107,16 @@ for epoch in range(1000):
     if epoch % 100 == 99:
         print(f'Rank {rank}, Epoch {epoch+1}, Loss: {loss.item():.4f}')
 
-# model eval locally
+# model eval
+# converting test tensors to half precision
+x_test_tensor = x_test_tensor.half()
+y_test_tensor = y_test_tensor.half()
+
 y_test_pred = model(x_test_tensor)
 final_loss = loss_fn(y_test_pred, y_test_tensor)
+
+# converting predictions back to float32 for evaluation, model ran in float16 precision only
+y_test_pred = y_test_pred.float()
 r2 = r2_score(y_test, y_test_pred.detach().numpy())
 mae = mean_absolute_error(y_test, y_test_pred.detach().numpy())
 
@@ -129,12 +146,8 @@ for param in model.parameters():
 # since model synchronization is happening every iteration, we need to count the parameters every iteraation
 num_params, d_size, _ = count_parameters_and_type(model)
 cumulative_message_count += num_params
-
-# We can implement this NN in torch.float16 precision (code for same is there in fedavg-experiments)
-# since params can be synced in lower precision that gradients.
-# As my system doesn't support half precision computation, I have implemented the code in full precision,
-# but the message size I have computed in half precision only to show the logical message size
-cumulative_message_size += 0.5 * d_size * num_params
+# We have implement this NN in torch.float16 precision since params needs lesser precision than gradients
+cumulative_message_size += d_size * num_params
 message_counts.append(cumulative_message_count)
 message_sizes.append(cumulative_message_size)
 
@@ -173,7 +186,6 @@ plt.legend()
 plt.savefig("images/fedavg/Loss Curve.png")
 
 # plotting the message size
-# since we are doing synchronisation only once gloablly, that's why we have only one datapoint for this example
 plt.figure(figsize=(10, 6))
 plt.scatter(range(1, len(message_sizes)+1), message_sizes)
 plt.title('Cumulative Message Size Over Time')
@@ -182,7 +194,6 @@ plt.ylabel('Cumulative Message Size (bytes)')
 plt.savefig(f"images/fedavg/Message Size Over Time at Rank {rank}.png")
 
 # plotting the message complexity i.e. number of messages exchanged
-# since we are doing synchronisation only once gloablly, that's why we have only one datapoint for this example
 plt.figure(figsize=(10, 6))
 plt.scatter(range(1, len(message_counts)+1), message_counts)
 plt.title('Cumulative Message Complexity Over Time')

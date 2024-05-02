@@ -1,5 +1,6 @@
 from mpi4py import MPI
 import numpy as np
+import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -51,7 +52,26 @@ class SimpleLinearRegression(nn.Module):
         x = self.linear2(x)
         return x
 
+def count_parameters_and_type(model):
+    count_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    d_type = next(model.parameters()).dtype
+    d_size = 0
+    if str(d_type) == "torch.float64" or str(d_type) == "torch.int64":
+        d_size = 8
+    elif str(d_type) == "torch.float32" or str(d_type) == "torch.int32":
+        d_size = 4
+    elif str(d_type) == "torch.float16" or str(d_type) == "torch.int16":
+        d_size = 2
+    elif str(d_type) == "torch.uint8":
+        d_size = 1
+    else:
+        d_size = 2
+    return count_params, d_size, d_type
+
 model = SimpleLinearRegression()
+
+num_params, d_size, d_type = count_parameters_and_type(model)
+print(f'The model has {num_params} parameters each having type {d_type} with size {d_size} bytes.')
 
 # loss function and optimizer
 loss_fn = nn.MSELoss()
@@ -63,6 +83,10 @@ dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
 # model training
 losses = []
+message_counts = []
+message_sizes = []
+cumulative_message_count = 0
+cumulative_message_size = 0
 for epoch in range(1000):
     for inputs, targets in dataloader:
         optimizer.zero_grad()
@@ -77,11 +101,18 @@ for epoch in range(1000):
             comm.Allreduce(grad_data, avg_grad, op=MPI.SUM)
             avg_grad /= size
             param.grad.data = torch.tensor(avg_grad)
-
         optimizer.step()
+
+    # since model synchronization is happening every iteration, we need to count the parameters every iteraation
+    num_params, d_size, _ = count_parameters_and_type(model)
+    cumulative_message_count += num_params
+    cumulative_message_size += d_size * num_params
+
     losses.append(loss.item())
+    message_counts.append(cumulative_message_count)
+    message_sizes.append(cumulative_message_size)
     if epoch % 100 == 99:
-        print(f'Rank {rank}, Epoch {epoch+1}, Loss: {loss.item():.4f}')
+        print(f'Rank {rank}, Epoch {epoch+1}, Loss: {loss.item():.4f}, Cumulative Messages: {cumulative_message_count}')
 
 # model eval
 y_test_pred = model(x_test_tensor)
@@ -101,4 +132,29 @@ plt.legend()
 plt.xlabel('X')
 plt.ylabel('Y')
 plt.title('Original Data vs Fitted Line')
-plt.savefig(f'images/fedsgd/plot_rank_{rank}_local.png')
+plt.savefig(f'images/fedsgd/Model Predictions Curve Rank {rank} After Reducing.png')
+
+# plotting the loss curve
+plt.figure(figsize=(10, 5))
+plt.plot(losses, label='Training Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.title('Training Loss Curve')
+plt.legend()
+plt.savefig(f"images/fedsgd/Loss Curve at Rank {rank}.png")
+
+# plotting the message size
+plt.figure(figsize=(10, 6))
+plt.plot(range(1, len(message_sizes)+1), message_sizes)
+plt.title('Cumulative Message Size Over Time')
+plt.xlabel('Epoch')
+plt.ylabel('Cumulative Message Size (bytes)')
+plt.savefig(f"images/fedsgd/Message Size Over Time at Rank {rank}.png")
+
+# plotting the message complexity i.e. number of messages exchanged
+plt.figure(figsize=(10, 6))
+plt.plot(range(1, len(message_counts)+1), message_counts)
+plt.title('Cumulative Message Complexity Over Time')
+plt.xlabel('Epoch')
+plt.ylabel('Cumulative Number of Messages')
+plt.savefig(f"images/fedsgd/Message Complexity Over Time at Rank {rank}.png")
